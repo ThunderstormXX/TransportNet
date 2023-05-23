@@ -10,6 +10,7 @@ from grad_methods import universal_similar_triangles_method as ustm
 from grad_methods import universal_gradient_descent_method as ugd
 from grad_methods import subgradient_descent_method as sd
 from grad_methods import frank_wolfe_method as fwm
+from grad_methods import conjugate_frank_wolfe_method as cfwm
 from grad_methods import weighted_dual_averages_method as wda
 
 
@@ -70,6 +71,10 @@ class Model:
         elif solver_name == 'sd':
             solver_func = sd.subgradient_descent_method
             starting_msg = 'Subgradient descent method...'
+        elif solver_name == 'cfwm':
+            solver_func = cfwm.conjugate_frank_wolfe_method
+            starting_msg = 'Conjugate Frank-Wolfe method...'
+        
         else:
             raise NotImplementedError('Unknown solver!')
         
@@ -99,6 +104,11 @@ class Model:
         print(starting_msg)
         
         if solver_name == 'fwm':
+            result = solver_func(oracle,
+                                 primal_dual_calculator, 
+                                 t_start = self.graph.freeflow_times,
+                                 **solver_kwargs)
+        elif solver_name == 'cfwm':
             result = solver_func(oracle,
                                  primal_dual_calculator, 
                                  t_start = self.graph.freeflow_times,

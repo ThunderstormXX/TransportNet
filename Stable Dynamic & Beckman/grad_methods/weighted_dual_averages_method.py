@@ -37,7 +37,7 @@ def weighted_dual_averages_method(oracle, prox, primal_dual_oracle,
         print(state_msg)
     
     success = False
-    
+    duality_gap_list = []
     for it_counter in range(1, max_iter+1):
         grad_t = oracle.grad(t)
         flows = primal_dual_oracle.get_flows(t) #grad() is called here
@@ -53,6 +53,7 @@ def weighted_dual_averages_method(oracle, prox, primal_dual_oracle,
         flows_weighted = (flows_weighted * (A - alpha) + flows * alpha) / A
         
         primal, dual, duality_gap, state_msg = primal_dual_oracle(flows_weighted, t_weighted)
+        duality_gap_list.append(duality_gap)
         if save_history:
             history.update(it_counter, primal, dual, duality_gap)
         if verbose and (it_counter % verbose_step == 0):
@@ -64,7 +65,8 @@ def weighted_dual_averages_method(oracle, prox, primal_dual_oracle,
             
     result = {'times': t_weighted, 'flows': flows_weighted,
               'iter_num': it_counter,
-              'res_msg': 'success' if success else 'iterations number exceeded'}
+              'res_msg': 'success' if success else 'iterations number exceeded',
+              'duality_gaps' : duality_gap_list}
     if save_history:
         result['history'] = history.dict
     if verbose:

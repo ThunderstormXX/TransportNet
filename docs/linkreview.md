@@ -5,6 +5,3 @@
 2) Переписать скрипт Anaheim_Beckmann_Experiments.ipynb в .py и позапускать его
 3) Реализовать Conjugate FW 
 4) Протестить и сравнить
-
-5)  ДА КТО ЭТОТ ВАШ CONJUGATE FW ???
-6)  

@@ -43,6 +43,7 @@ def universal_similar_triangles_method(oracle, prox, primal_dual_oracle,
     success = False
     inner_iters_num = 0
     
+    duality_gap_list = []
     for it_counter in range(1, max_iter+1):
         while True:
             inner_iters_num += 1
@@ -74,6 +75,7 @@ def universal_similar_triangles_method(oracle, prox, primal_dual_oracle,
         flows_weighted = (flows_weighted * (A - alpha) + flows * alpha ) / A
         
         primal, dual, duality_gap, state_msg = primal_dual_oracle(flows_weighted, t)
+        duality_gap_list.append(duality_gap)
         if save_history:
             history.update(it_counter, primal, dual, duality_gap, inner_iters_num)
         if verbose and (it_counter % verbose_step == 0):
@@ -86,7 +88,8 @@ def universal_similar_triangles_method(oracle, prox, primal_dual_oracle,
             
     result = {'times': t, 'flows': flows_weighted,
               'iter_num': it_counter,
-              'res_msg': 'success' if success else 'iterations number exceeded'}
+              'res_msg': 'success' if success else 'iterations number exceeded',
+              'duality_gaps' : duality_gap_list}
     if save_history:
         result['history'] = history.dict
     if verbose:

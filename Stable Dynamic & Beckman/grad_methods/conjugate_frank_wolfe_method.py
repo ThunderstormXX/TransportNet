@@ -3,10 +3,10 @@ import numpy as np
 from history import History
 from scipy.optimize import minimize_scalar
 
-def frank_wolfe_method(oracle, primal_dual_oracle,
+def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
                        t_start, max_iter = 1000,
                        eps = 1e-5, eps_abs = None, stop_crit = 'dual_gap_rel',
-                       verbose_step = 100, verbose = False, save_history = False , linesearch = False):
+                       verbose_step = 100, verbose = False, save_history = False ,alpha_default = 0.95 , linesearch = False):
     if stop_crit == 'dual_gap_rel':
         def crit():
             return duality_gap <= eps * duality_gap_init
@@ -33,24 +33,49 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         print(state_msg) 
     if eps_abs is None:
         eps_abs = eps * duality_gap_init
-    
-    duality_gap_list = []
     success = False
-    gamma = 1 
+
+    duality_gap_list = []
+    gamma = 1.0
+    t = primal_dual_oracle.get_times(flows) #На самом деле не важно что тут, это чтобы инициализировать x_star просто
+    x_star = primal_dual_oracle.get_flows(t) #На самом деле не важно что тут, это чтобы инициализировать x_star просто
+    alpha = 1
     for it_counter in range(1, max_iter+1):
         t = primal_dual_oracle.get_times(flows)
-        y_parameter = primal_dual_oracle.get_flows(t) 
+        x_aon = primal_dual_oracle.get_flows(t)
 
-        if linesearch :
-            res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * y_parameter , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
-            gamma = res.x
-        else :
-            gamma = 2.0/(it_counter + 1)
-        flows = (1.0 - gamma) * flows + gamma * y_parameter
-        t_weighted = (1.0 - gamma) * t_weighted + gamma * t
+        if it_counter > 1 :
+            hessian = primal_dual_oracle.get_diff_times(flows)
+            denom = np.sum(( x_star - flows ) * hessian * ( x_aon - flows_old ))
+            if denom == 0 :
+                alpha = 0
+            else :
+                alpha = np.sum(( x_star - flows ) * hessian * ( x_aon - flows )) / np.sum(( x_star - flows ) * hessian * ( x_aon - flows_old )) 
+            
+            # print(alpha)
+            if alpha < 0 :
+                alpha = 0 
+            if alpha > 1 :
+                alpha = alpha_default
+
+
+        x_star = x_star*alpha + (1-alpha)*x_aon
         
-        primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
+        if linesearch :
+            res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * x_star , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0, 1.0) , tol = 1e-12 )
+            gamma = res.x
+            # print(gamma)
+        else :
+            gamma = 2/(it_counter+1)
 
+
+
+        flows_old = flows
+        flows = (1.0 - gamma) * flows + gamma * x_star
+        t_weighted = (1.0 - gamma) * t_weighted + gamma * t
+
+
+        primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
         duality_gap_list.append(duality_gap)
         if save_history:
             history.update(it_counter, primal, dual, duality_gap)
