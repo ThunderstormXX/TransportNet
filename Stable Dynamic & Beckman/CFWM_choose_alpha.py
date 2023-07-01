@@ -51,9 +51,9 @@ graph_data['graph_table'].head()
 
 #  Подбор alpha
 
-alpha_range = np.arange(0,1.0,0.01)
+alpha_range = np.arange(0,1.0,0.05)
 
-max_iter = 25
+max_iter = 2000
 duality_by_alpha = []
 for alpha in alpha_range :
     print("alpha :",alpha)
@@ -76,10 +76,10 @@ for alpha in alpha_range :
 
 plt.figure(figsize = (10, 5))
 
-plt.plot(alpha_range, duality_by_alpha , color ='red' ,label = '')
+plt.plot(alpha_range, duality_by_alpha , color ='black' ,label = '')
 
-plt.ylabel('50 iters dual_gaps', fontsize = 12)
-plt.xlabel('alpha', fontsize = 12)
+plt.ylabel('dual_gaps with max iter = '+ str(max_iter) , fontsize = 12)
+plt.xlabel('alpha_default', fontsize = 12)
 plt.yscale('log')
 plt.show()
 
