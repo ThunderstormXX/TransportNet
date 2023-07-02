@@ -23,11 +23,12 @@ graph_data = handler.GetGraphData(net_name, columns = ['init_node', 'term_node',
 graph_correspondences, total_od_flow = handler.GetGraphCorrespondences(trips_name)
 model = md.Model(graph_data, graph_correspondences, 
                     total_od_flow, mu = 0.25, rho = 0.15)
-graph_data['graph_table'].head()
+
 
 
 # print(graph_data['graph_table'].head())
 print(type(graph_correspondences), graph_correspondences)
+print(graph_data)
 print(type(total_od_flow),total_od_flow)
 
 
