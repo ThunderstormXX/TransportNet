@@ -26,8 +26,9 @@ model = md.Model(graph_data, graph_correspondences,
 graph_data['graph_table'].head()
 
 
-print(graph_data['graph_table'].head())
-print(graph_correspondences)
+# print(graph_data['graph_table'].head())
+print(type(graph_correspondences), graph_correspondences)
+print(type(total_od_flow),total_od_flow)
 
 
 max_iter = 10
