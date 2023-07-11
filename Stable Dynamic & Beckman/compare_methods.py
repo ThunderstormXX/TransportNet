@@ -51,7 +51,7 @@ graph_data['graph_table'].head()
 
 
 
-max_iter = 1000
+max_iter = 100
 
 # Conjugate FWM test
 
@@ -181,7 +181,7 @@ dual_gaps_fwm_linesearch = result_fwm_linesearch['duality_gaps']
 # dual_gaps_ugd = result_ugd['duality_gaps']
 # dual_gaps_wda = result_wda['duality_gaps']
 # dual_gaps_wdaNon = result_wdaNon['duality_gaps']
-iters = np.arange(len(dual_gaps_cfwm))
+iters = np.arange(max_iter)
 plt.figure(figsize = (10, 5))
 
 plt.plot(iters, dual_gaps_fwm , color ='red' ,label = 'Frank Wolf')
@@ -191,10 +191,14 @@ plt.plot(iters, dual_gaps_cfwm_linesearch , color = 'brown' ,label = 'Conjugate 
 # plt.plot(iters, dual_gaps_ustm , color ='blue' ,label = 'USTM')
 # plt.plot(iters, dual_gaps_ugd , color ='black' ,label = 'UGD')
 # plt.plot(iters, dual_gaps_wda , color ='orange' ,label = 'WDA')
+
+
+
 # plt.plot(iters, dual_gaps_wdaNon , color ='red' ,label = 'WDA-noncomposite')
 
-plt.ylabel('duality gap', fontsize = 12)
-plt.xlabel('iterations', fontsize = 12)
+# plt.ylabel('duality gap', fontsize = 12)
+# plt.xlabel('iterations', fontsize = 12)
+plt.legend()
 plt.yscale('log')
 plt.show()
 

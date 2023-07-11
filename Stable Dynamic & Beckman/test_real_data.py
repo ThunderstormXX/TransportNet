@@ -17,8 +17,8 @@ import copy
 graph = ox.graph_from_place('Dolgoprudny, Russia')
 result_graph = copy.deepcopy(graph)
 # Какие типы дорог хотим оставить
-need_keys = ['length','oneway','reversed']
-highway_types = ["motorway", "trunk", "primary", "secondary",'service']
+need_keys = ['length']
+# highway_types = ["motorway", "trunk", "primary", "secondary",'service']
 edges_to_remove = []
 for u, v, key, edge_data in result_graph.edges(keys=True, data=True):
     # KEYS FILTER
@@ -27,17 +27,17 @@ for u, v, key, edge_data in result_graph.edges(keys=True, data=True):
             edges_to_remove.append((u, v, key))
             break
     # HIGHWAY FILTER
-    if 'highway' not in edge_data.keys() :
-        edges_to_remove.append((u, v, key))
-    else :
-        if type(edge_data['highway']) == type(""):
-            if edge_data['highway'] not in highway_types :
-                edges_to_remove.append((u, v, key))
-        else :
-            for highway_type in edge_data['highway'] :
-                if highway_type not in highway_types :
-                    edges_to_remove.append((u, v, key))
-                    break
+    # if 'highway' not in edge_data.keys() :
+    #     edges_to_remove.append((u, v, key))
+    # else :
+    #     if type(edge_data['highway']) == type(""):
+    #         if edge_data['highway'] not in highway_types :
+    #             edges_to_remove.append((u, v, key))
+    #     else :
+    #         for highway_type in edge_data['highway'] :
+    #             if highway_type not in highway_types :
+    #                 edges_to_remove.append((u, v, key))
+    #                 break
 for u, v, key in set(edges_to_remove):
     result_graph.remove_edge(u, v, key)
 # Получение списка вершин без ребер

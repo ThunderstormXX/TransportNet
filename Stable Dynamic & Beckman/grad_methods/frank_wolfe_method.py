@@ -41,6 +41,8 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         t = primal_dual_oracle.get_times(flows)
         y_parameter = primal_dual_oracle.get_flows(t) 
 
+        # print(gamma)
+
         if linesearch :
             res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * y_parameter , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
             gamma = res.x
