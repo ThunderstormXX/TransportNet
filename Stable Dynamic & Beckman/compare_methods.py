@@ -51,7 +51,7 @@ graph_data['graph_table'].head()
 
 
 
-max_iter = 100
+max_iter = 1000
 
 # Conjugate FWM test
 

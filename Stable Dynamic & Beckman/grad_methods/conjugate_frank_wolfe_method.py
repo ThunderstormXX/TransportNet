@@ -112,7 +112,7 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
                 # print(np.max(flows - flows_old) ,np.sum(( x_star - flows ) * hessian * ( x_aon - flows )) ,np.sum(( x_star - flows ) * hessian * ( x_aon - flows_old )) , alpha)
                 if alpha < 0 :
                     alpha = 0 
-                if alpha > 0.99 :
+                if alpha > 0.9999 :
                     alpha = alpha_default
 
 
@@ -154,7 +154,7 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
                 if denom == 0 :
                     alpha = 0
                 else :
-                    alpha = np.sum(( x_star - flows ) * hessian * ( x_aon - flows )) / np.sum(( x_star - flows ) * hessian * ( x_aon - flows_old )) 
+                    alpha = np.sum(( x_star - flows ) * hessian * ( x_aon - flows )) / denom
                 
                 # print(alpha)
                 if alpha < 0 :
