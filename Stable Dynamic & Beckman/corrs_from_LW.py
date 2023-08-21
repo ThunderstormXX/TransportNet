@@ -5,13 +5,18 @@ import numpy as np
 np.set_printoptions(suppress=True)
 
 import data_handler as dh
-# import sinkhorn as skh
+import sinkhorn as skh
 import model as md
 import csv
 
-net_name = '../data/vl_links.txt'
-trips_name = '../data/vl_trips.txt'
+import pandas as pd
+
+net_name = './data/vl_links.txt'
+trips_name = './data/vl_trips_test.txt'
 parsers = 'vladik'
+
+graph_table_name = './data/graph_table_test.csv'
+
 # net_name = '../data/SiouxFalls_net.tntp'
 # trips_name = '../data/SiouxFalls_trips.tntp'
 # parsers = 'tntp'
@@ -32,6 +37,8 @@ def get_times_inverse_func(capacity, times, rho = 0.15, mu=0.25):
 def get_LW(L_dict, W_dict, new_to_old):
     L = np.array([L_dict[new_to_old[i]] for i in range(len(L_dict))], dtype=np.double)
     W = np.array([W_dict[new_to_old[i]] for i in range(len(W_dict))], dtype=np.double)
+    L = handler.distributor_L_W(L)
+    W = handler.distributor_L_W(W)
     people_num = L.sum()
     print(type(L))
     L /= np.nansum(L)
@@ -42,7 +49,17 @@ def get_LW(L_dict, W_dict, new_to_old):
 if __name__ == '__main__':
 
     handler = dh.DataHandler()
-    graph_data = handler.GetGraphData(net_name, eval(f'handler.{parsers}_net_parser'), columns=['init_node', 'term_node', 'capacity', 'free_flow_time'])
+    
+    # graph_data = handler.GetGraphData(net_name, eval(f'handler.{parsers}_net_parser'), columns=['init_node', 'term_node', 'capacity', 'free_flow_time'])
+    graph_table = pd.read_csv(graph_table_name, low_memory=False , sep = ' ')
+    graph_data = {}
+    graph_data['graph_table'] = graph_table
+    graph_data['nodes number'] = len(set(graph_table.init_node.values) | set(graph_table.term_node.values))
+    graph_data['links number'] = graph_table.shape[0]
+    print('nUMBER OF NODES, LINKS: ', graph_data['nodes number'], 
+            graph_data['links number'])
+    # print(graph_data)
+    
     L_dict, W_dict = handler.GetLW_dicts(trips_name, eval(f'handler.{parsers}_corr_parser'))
 
     handler = dh.DataHandler()
@@ -59,7 +76,7 @@ if __name__ == '__main__':
     print('init LW')
     L, W, people_num = get_LW(L_dict, W_dict, new_to_old)
     total_od_flow = people_num
-    print('L, W', L, W)
+
 
     model = md.Model(graph_data, empty_corr_dict, total_od_flow, mu=0.25)
 
@@ -70,14 +87,14 @@ if __name__ == '__main__':
     if parsers == 'vladik':
         best_sink_beta = T.shape[0] / np.nansum(T)
 
-    for ms_i in range(250):
+    for ms_i in range(4):
 
         print('iteration: ', ms_i)
 
         s = skh.Sinkhorn(L, W, people_num, sink_num_iter, sink_eps)
         T = np.nan_to_num(T, nan=0, posinf=0, neginf=0)
 
-        # best_sink_beta = T.shape[0] / np.nansum(T)
+        best_sink_beta = T.shape[0] / np.nansum(T)
 
         # зачем тут nan_to_num если Т уже через него пропущена с другим nan=
         cost_matrix = np.nan_to_num(T * best_sink_beta, nan=INF_COST)
@@ -91,6 +108,12 @@ if __name__ == '__main__':
         W_new /= np.nansum(W_new)
         # print('L:', np.isclose(L, L_new) , sep = '\n')
         # print('W:', W == W_new, sep = '\n')
+        # print('cost matrix : ',cost_matrix)
+        # print('rec ; ' ,rec)
+        # print('L :', L)
+        # print('Lnew :', L_new)
+        # print('W :', W)
+        # print('Wnew :', W_new)
         assert(np.allclose(L, L_new))
         assert(np.allclose(W, W_new))
 
@@ -108,18 +131,11 @@ if __name__ == '__main__':
         T_dict = result['zone travel times']
         T = handler.T_matrix_from_dict(T_dict, rec.shape, old_to_new)
 
-
-
-
         # no impact on iterations from code below
-
         flows_inverse_func = get_times_inverse_func(graph_data['graph_table']['capacity'], result['times'], rho=0.15, mu=0.25)
-
         subg = result['subg']
-
         # for key in result['subg'].keys():
         #     subg[key[0] - 1][key[1] - 1] = result['subg'][key]
-
         print('subg shape: ', np.shape(subg), 'flows_inv shape: ',  np.shape(flows_inverse_func))
 
         if max_iter == 2:

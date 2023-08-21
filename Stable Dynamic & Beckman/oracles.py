@@ -322,8 +322,11 @@ class HOracle(BaseOracle):
         #rewrite as x - x_0 + a x^mu = 0, x >= 0
         #where x = (t - bar{t})/(bar{t} * rho), x_0 = (p_new - bar{t})/(bar{t} * rho),
         #      a = bar{f} / (A * bar{t} * rho)
+        # print(self.rho , np.where(self.freeflowtimes == 0 ) , A)
+
         x = newton(x_0_arr = (point_new - self.freeflowtimes) / (self.rho * self.freeflowtimes),
                    a_arr = self.capacities / (A * self.rho * self.freeflowtimes),
                    mu = self.mu)
+        
         argmin = (1 + self.rho * x) * self.freeflowtimes
         return argmin

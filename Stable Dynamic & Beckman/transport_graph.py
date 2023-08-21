@@ -39,7 +39,8 @@ class TransportGraph:
         self.graph.edge_properties["freeflow_times"] = ep_freeflow_time
         self.graph.edge_properties["capacities"] = ep_capacity
 
-    
+    def update_flow_times(self, flow_times):
+        self.initial_times = np.array(flow_times, dtype='float64').flatten()
     @property
     def edges(self):
         return self.graph.get_edges([self.graph.edge_index])
