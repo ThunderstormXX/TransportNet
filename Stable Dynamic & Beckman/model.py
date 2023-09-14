@@ -12,7 +12,7 @@ from grad_methods import subgradient_descent_method as sd
 from grad_methods import frank_wolfe_method as fwm
 from grad_methods import conjugate_frank_wolfe_method as cfwm
 from grad_methods import weighted_dual_averages_method as wda
-
+from grad_methods import fukushima_frank_wolfe_method as fwf
 
 
 
@@ -23,7 +23,7 @@ class Model:
         self.mu = mu
         self.rho = rho
         self.inds_to_nodes, self.graph_correspondences, self.graph_table = \
-            self._index_nodes(graph_data['graph_table'], graph_correspondences, fill_corrs=False)
+            self._index_nodes(graph_data['graph_table'], graph_correspondences, fill_corrs=True)
         self.graph = tg.TransportGraph(self.graph_table, len(self.inds_to_nodes), graph_data['links number'])
 
         
@@ -80,7 +80,10 @@ class Model:
         elif solver_name == 'cfwm':
             solver_func = cfwm.conjugate_frank_wolfe_method
             starting_msg = 'Conjugate Frank-Wolfe method...'
-        
+        elif solver_name == 'fwf':
+            solver_func = fwf.fukushima_frank_wolfe_method
+            starting_msg = 'Fukushima Frank-Wolfe method...'
+
         else:
             raise NotImplementedError('Unknown solver!')
         
@@ -115,6 +118,11 @@ class Model:
                                  t_start = self.graph.freeflow_times,
                                  **solver_kwargs)
         elif solver_name == 'cfwm':
+            result = solver_func(oracle,
+                                 primal_dual_calculator, 
+                                 t_start = self.graph.freeflow_times,
+                                 **solver_kwargs)
+        elif solver_name == 'fwf':
             result = solver_func(oracle,
                                  primal_dual_calculator, 
                                  t_start = self.graph.freeflow_times,

@@ -3,10 +3,11 @@ import numpy as np
 from history import History
 from scipy.optimize import minimize_scalar
 
-def frank_wolfe_method(oracle, primal_dual_oracle,
+def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
                        t_start, max_iter = 1000,
                        eps = 1e-5, eps_abs = None, stop_crit = 'dual_gap_rel',
-                       verbose_step = 100, verbose = False, save_history = False , linesearch = False , lambda_k = 0):
+                       verbose_step = 100, verbose = False, save_history = False , linesearch = False , l_parameter = 1 ,weight_parameter = 0 ,
+                       lambda_k=0):
     if stop_crit == 'dual_gap_rel':
         def crit():
             return duality_gap <= eps * duality_gap_init
@@ -35,16 +36,41 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         eps_abs = eps * duality_gap_init
     
     duality_gap_list = []
+
+
+    y_parameter_list = []    
     success = False
     gamma = 1 
+    
     for it_counter in range(1, max_iter+1):
         t = primal_dual_oracle.get_times(flows)
         y_parameter = primal_dual_oracle.get_flows(t) 
+        if it_counter == 1 :
+            Q = y_parameter
 
-        # print(gamma)
+        # Непрерывный случай
+        if weight_parameter != 0 :
+            Q = Q*(1-weight_parameter)+y_parameter*weight_parameter    
+            d_k = Q-flows
+        else :    #Дисретный случай
+            if len(y_parameter_list) < l_parameter :    
+                y_parameter_list.append(y_parameter)
+            else :
+                y_parameter_list.pop(0)
+                y_parameter_list.append(y_parameter)
+            nu = np.sum(y_parameter_list,axis=0)/len(y_parameter_list) - flows
 
+            w = y_parameter - flows
+            d_k = 0
+            if np.sum(t*nu)/np.linalg.norm(nu ,ord=2) < np.sum(t*w)/np.linalg.norm(w ,ord=2) :
+                d_k = nu
+            else :
+                d_k = w
+            
         if linesearch :
-            res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * y_parameter , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
+            # Точно ли надо брать primal_dual_oracle от  (1-gamma*t_weighted +gamma*t  может там просто t_weighted ??????
+            # Ответ: да надо , ведь ниже всегда считаются flows и t_weighted одновременно а потом загоняются в функцию
+            res = minimize_scalar( lambda y : primal_dual_oracle( flows + y*d_k , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
             gamma = res.x
         else :
             gamma = 2.0/(it_counter + 1)
@@ -53,10 +79,11 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         if lambda_k != 0 :
             gamma_mod = lambda_k*gamma 
             betta = min(gamma_mod,1)
-            if primal_dual_oracle(( 1.0 -  betta) * flows + betta * y_parameter , (1.0 - betta) * t_weighted + betta * t)[2] < primal_dual_oracle(flows,t_weighted)[2] :
+            if primal_dual_oracle(flows + betta*d_k , (1.0 - betta) * t_weighted + betta * t)[2] < primal_dual_oracle(flows,t_weighted)[2] :
                 gamma = betta
+        
 
-        flows = (1.0 - gamma) * flows + gamma * y_parameter
+        flows = flows + gamma*d_k        #по сути то же : flows = (1.0 - gamma) * flows + gamma *
         t_weighted = (1.0 - gamma) * t_weighted + gamma * t
         
         primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)

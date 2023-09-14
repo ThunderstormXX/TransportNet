@@ -72,7 +72,30 @@ class DataHandler:
         print('nUMBER OF NODES, LINKS: ', graph_data['nodes number'], 
             graph_data['links number'])#, graph_data['zones number'])
         return graph_data 
+    
+    def GetGraphCorrespondences(self, file_name):
+        with open(file_name, 'r') as myfile:
+            trips_data = myfile.read()
         
+        total_od_flow = scanf('<TOTAL OD FLOW> %f', trips_data)[0]
+        #zones_number = scanf('<NUMBER OF ZONES> %d', trips_data)[0]
+        
+        origins_data = re.findall(r'Origin[\s\d.:;]+', trips_data)
+
+        graph_correspondences = {}
+        for data in origins_data:
+            origin_index = scanf('Origin %d', data)[0]
+            origin_correspondences = re.findall(r'[\d]+\s+:[\d.\s]+;', data)
+            targets = []
+            corrs_vals = []
+            for line in origin_correspondences:
+                target, corrs = scanf('%d : %f', line)
+                targets.append(target)
+                corrs_vals.append(corrs)
+            graph_correspondences[origin_index] = {'targets' : targets, 'corrs' : corrs_vals}
+        return graph_correspondences, total_od_flow
+
+
     @staticmethod
     def vladik_corr_parser(file_name):
         with open(file_name, 'r') as fin:
