@@ -25,7 +25,7 @@ city_name = 'SiouxFalls'
 model,graph_data = test.init_city(beckmann_save, cities_data , net_name , trips_name)
 
 #INIT MAX ITER
-max_iter = 100
+max_iter = 1000
 
 #INIT METHODS
 list_methods = []
@@ -43,30 +43,30 @@ list_methods.append(( 'fwm', 'Frank Wolfe' ,
 
 
 ### CFWM
-list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe' , 
-    {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 3000, 'save_history' : True , "alpha_default" : 0.6 } ))
+# list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe' , 
+#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 3000, 'save_history' : True , "alpha_default" : 0.6 } ))
 ### CFWM linesearch
 # list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe linesearch' , 
 #     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "alpha_default" : 0.6 , "linesearch" :True} ))
 
 ### FWF weighted
-# weights = [ 0.5 , 0.2 ]
-# for w in weights :
-#     list_methods.append(( 'fwf' , 'Fukushima Frank-Wolfe weighted =' + str(w) ,
-#         {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , 'weight_parameter' : w ,  'linesearch': True }))
+weights = [ 0.5 , 0.2 ]
+for w in weights :
+    list_methods.append(( 'fwf' , 'Fukushima Frank-Wolfe weighted =' + str(w) ,
+        {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , 'weight_parameter' : w ,  'linesearch': True }))
 
 ### FWF l_param with lambda mod
-# l_parameters = [2,5]
-# lambda_k = 1.5
-# for l in l_parameters:
-#     list_methods.append(( 'fwf' , 'Fukushima Frank-Wolfe lambda='+str(lambda_k)+' with l_param =' + str(l) ,
-#         {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True ,
-#                       'l_parameter' : l , 'linesearch' : True , 'lambda_k': lambda_k}))
+l_parameters = [2,5]
+lambda_k = 1.5
+for l in l_parameters:
+    list_methods.append(( 'fwf' , 'Fukushima Frank-Wolfe lambda='+str(lambda_k)+' with l_param =' + str(l) ,
+        {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True ,
+                      'l_parameter' : l , 'linesearch' : True , 'lambda_k': lambda_k}))
     
 ### Biconjugate Frank Wolfe 
-list_methods.append(( 'cfwm', 'Biconjugate Frank Wolfe' , 
-    {'max_iter' : max_iter, 'stop_crit': 'max_iter',
-                 'verbose' : True, 'verbose_step': 2000, 'save_history' : True , 'biconjugate' : True } ))
+# list_methods.append(( 'cfwm', 'Biconjugate Frank Wolfe' , 
+#     {'max_iter' : max_iter, 'stop_crit': 'max_iter',
+#                  'verbose' : True, 'verbose_step': 2000, 'save_history' : True , 'biconjugate' : True } ))
 
 ### USTM
 # eps_abs = 31

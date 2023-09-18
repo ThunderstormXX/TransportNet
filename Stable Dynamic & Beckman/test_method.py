@@ -38,6 +38,7 @@ def save_and_plot( experiments , d_gap_display = True , primal_display = False )
     colors = [color_generator(i) for i in np.linspace(0, 1, len(experiments))]
     time = datetime.datetime.now().time().strftime("%H:%M")
     date = datetime.datetime.now().date()
+    experiments_folder = './experiments_results/'
     if d_gap_display :       
         plt.figure(figsize = (10, 5))
         for col_id , experiment in enumerate(experiments) :
@@ -45,8 +46,7 @@ def save_and_plot( experiments , d_gap_display = True , primal_display = False )
             dual_gaps = result['duality_gaps']
             iters = np.arange(max_iter)
             plt.plot(iters, dual_gaps , color =colors[col_id] ,label = name)
-            experiments_folder = './experiments_results/'
-            experiment_path = experiments_folder + name + '_' + city_name + '_' + str(max_iter) + 'iters_datetime_' + str(date)+'_' + str(time)+ '.csv'
+            experiment_path = experiments_folder +'iterations/'+ name + '_' + city_name + '_' + str(max_iter) + 'iters_datetime_' + str(date)+'_' + str(time)+ '.csv'
             df_dual_gaps = pd.DataFrame(dual_gaps)
             df_dual_gaps.to_csv( experiment_path  , index=False)
         
@@ -55,7 +55,7 @@ def save_and_plot( experiments , d_gap_display = True , primal_display = False )
         plt.title('Сходимость duality gap на городе ' + city_name)
         plt.legend()
         plt.yscale('log')
-        plt.savefig(experiments_folder + 'Experiment_dualgap_date_'+ str(date) +'_time_'+str(time)+ '_city_' + city_name + '_' + str(max_iter) + 'iters' + '.png')
+        plt.savefig(experiments_folder +'pictures/'+ 'Experiment_dualgap_date_'+ str(date) +'_time_'+str(time)+ '_city_' + city_name + '_' + str(max_iter) + 'iters' + '.png')
         plt.show()
     if primal_display :
         plt.figure(figsize = (10, 5))
@@ -65,8 +65,7 @@ def save_and_plot( experiments , d_gap_display = True , primal_display = False )
             primals = result['duality_gaps']
             iters = np.arange(max_iter)
             plt.plot(iters, primals , color =colors[col_id] ,label = name)
-            experiments_folder = './experiments_results/'
-            experiment_path = experiments_folder + name + '_' + city_name + '_' + str(max_iter) + 'iters' + '.csv'
+            experiment_path = experiments_folder+ 'iterations/' + name + '_' + city_name + '_' + str(max_iter) + 'iters' + '.csv'
             df_primals = pd.DataFrame(primals)
             df_primals.to_csv( experiment_path  , index=False)
         plt.ylabel('primals', fontsize = 12)
