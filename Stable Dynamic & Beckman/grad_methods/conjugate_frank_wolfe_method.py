@@ -63,20 +63,33 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
 
                 dk_bar  = sk_BFW - flows
                 dk_bbar = gamma * sk_BFW - flows + (1-gamma) * sk_BFW_old
-                muk = - np.sum( dk_bbar* hessian * dk_FW ) / np.sum( dk_bbar* hessian * (sk_BFW_old - sk_BFW) )
-                nuk = - np.sum( dk_bar* hessian * dk_FW ) / np.sum( dk_bar* hessian * dk_bar) + muk*gamma/(1-gamma)
-                muk = max(0, muk)
-                nuk = max(0, nuk)
-                betta_0 = 1 / ( 1 + muk + nuk )
-                betta_1 = nuk * betta_0
-                betta_2 = muk * betta_0
+                
+                denom_mu_k = np.sum( dk_bbar* hessian * (sk_BFW_old - sk_BFW) )
+                if denom_mu_k != 0 :
+                    mu_k = - np.sum( dk_bbar* hessian * dk_FW ) / denom_mu_k
+                else :
+                    mu_k = 0
+                denom_nu_k = np.sum( dk_bar* hessian * dk_bar)
+                if denom_nu_k != 0 :
+                    nu_k = - np.sum( dk_bar* hessian * dk_FW ) / denom_nu_k + mu_k*gamma/(1-gamma)
+                else :
+                    nu_k = 0
+                mu_k = max(0, mu_k)
+                nu_k = max(0, nu_k)
+                
+                betta_0 = 1 / ( 1 + mu_k + nu_k )
+                betta_1 = nu_k * betta_0
+                betta_2 = mu_k * betta_0
+
+                # print(np.sum(sk_BFW_old - sk_BFW),denom_mu_k , denom_nu_k , betta_0 , betta_1 , betta_2)
 
                 sk_BFW_new = betta_0*sk_FW + betta_1*sk_BFW + betta_2*sk_BFW_old
                 sk_BFW_old = sk_BFW
-                sk_BWF = sk_BFW_new
+                sk_BFW = sk_BFW_new
+
                 dk_BFW =  sk_BFW - flows
                 dk = dk_BFW
-            
+
             if linesearch :
                 res = minimize_scalar( lambda y : primal_dual_oracle(flows + y*dk , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
                 gamma = res.x

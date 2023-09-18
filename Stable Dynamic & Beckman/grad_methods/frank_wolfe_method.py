@@ -46,17 +46,8 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         t = primal_dual_oracle.get_times(flows)
         yk_FW = primal_dual_oracle.get_flows(t) 
         primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t)
-        # print(duality_gap , -np.dot(t , yk_FW - flows) , np.dot(t , flows) , -np.dot(t_weighted , yk_FW -flows))
         primal_list.append(primal)
-        # print(it_counter , ' primtal = ' , primal , ' dual =' , dual)
-        LBD_k = primal + np.dot( t_weighted, yk_FW-flows)
-        if it_counter ==1 :
-            LBD = LBD_k
-        else :
-            if LBD_k > LBD :
-                LBD = LBD_k
-        # print(gamma)
-
+        
         if linesearch :
             res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * yk_FW , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
             gamma = res.x
