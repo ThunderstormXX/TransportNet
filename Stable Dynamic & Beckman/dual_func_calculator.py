@@ -34,6 +34,7 @@ class PrimalDualCalculator:
                          '\nDual_func_value = {:g}'.format(dual) + \
                          '\nDuality_gap = {:g}'.format(gap) + \
                          '\nDuality_gap / Duality_gap_init = {:g}'.format(gap / self.dual_gap_init)
+
         return primal, dual, gap, state_msg
     
     

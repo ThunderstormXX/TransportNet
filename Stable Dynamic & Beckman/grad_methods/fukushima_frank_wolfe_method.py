@@ -36,15 +36,19 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
         eps_abs = eps * duality_gap_init
     
     duality_gap_list = []
-
-
+    relative_gaps = []
+    primal_list = []
     y_parameter_list = []    
     success = False
     gamma = 1 
     
     for it_counter in range(1, max_iter+1):
+
         t = primal_dual_oracle.get_times(flows)
         y_parameter = primal_dual_oracle.get_flows(t) 
+        # primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
+        # primal_list.append(primal)
+
         if it_counter == 1 :
             Q = y_parameter
 
@@ -101,7 +105,8 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
     result = {'times': t_weighted, 'flows': flows,
               'iter_num': it_counter,
               'res_msg' : 'success' if success else 'iterations number exceeded',
-              'duality_gaps' : duality_gap_list}
+              'duality_gaps' : duality_gap_list , 'relative_gaps': relative_gaps ,
+              'primal_list' : primal_list }
     if save_history:
         result['history'] = history.dict
     if verbose:

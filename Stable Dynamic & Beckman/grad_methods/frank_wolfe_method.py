@@ -26,6 +26,9 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
     t_weighted = np.copy(t_start)
     
     primal, dual, duality_gap_init, state_msg = primal_dual_oracle(flows, t_weighted) 
+
+    # print('start values : primal =' , primal , '  dual = ' , dual )
+
     if save_history:
         history = History('iter', 'primal_func', 'dual_func', 'dual_gap')
         history.update(0, primal, dual, duality_gap_init)
@@ -35,16 +38,27 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         eps_abs = eps * duality_gap_init
     
     duality_gap_list = []
+    relative_gap_list = []
+    primal_list = []
     success = False
     gamma = 1 
     for it_counter in range(1, max_iter+1):
         t = primal_dual_oracle.get_times(flows)
-        y_parameter = primal_dual_oracle.get_flows(t) 
-
+        yk_FW = primal_dual_oracle.get_flows(t) 
+        primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t)
+        # print(duality_gap , -np.dot(t , yk_FW - flows) , np.dot(t , flows) , -np.dot(t_weighted , yk_FW -flows))
+        primal_list.append(primal)
+        # print(it_counter , ' primtal = ' , primal , ' dual =' , dual)
+        LBD_k = primal + np.dot( t_weighted, yk_FW-flows)
+        if it_counter ==1 :
+            LBD = LBD_k
+        else :
+            if LBD_k > LBD :
+                LBD = LBD_k
         # print(gamma)
 
         if linesearch :
-            res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * y_parameter , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
+            res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * yk_FW , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
             gamma = res.x
         else :
             gamma = 2.0/(it_counter + 1)
@@ -53,13 +67,16 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         if lambda_k != 0 :
             gamma_mod = lambda_k*gamma 
             betta = min(gamma_mod,1)
-            if primal_dual_oracle(( 1.0 -  betta) * flows + betta * y_parameter , (1.0 - betta) * t_weighted + betta * t)[2] < primal_dual_oracle(flows,t_weighted)[2] :
+            if primal_dual_oracle(( 1.0 -  betta) * flows + betta * yk_FW , (1.0 - betta) * t_weighted + betta * t)[2] < primal_dual_oracle(flows,t_weighted)[2] :
                 gamma = betta
-
-        flows = (1.0 - gamma) * flows + gamma * y_parameter
+        dk_FW = yk_FW - flows
+        flows = (1.0 - gamma) * flows + gamma * yk_FW
         t_weighted = (1.0 - gamma) * t_weighted + gamma * t
         
         primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
+        
+
+        # print(duality_gap ,  - np.dot())
 
         duality_gap_list.append(duality_gap)
         if save_history:
@@ -70,11 +87,15 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         if crit():
             success = True
             break
+
+
      
     result = {'times': t_weighted, 'flows': flows,
               'iter_num': it_counter,
               'res_msg' : 'success' if success else 'iterations number exceeded',
-              'duality_gaps' : duality_gap_list}
+              'duality_gaps' : duality_gap_list ,
+              'relative_gaps' : relative_gap_list ,
+              'primal_list': primal_list}
     if save_history:
         result['history'] = history.dict
     if verbose:
