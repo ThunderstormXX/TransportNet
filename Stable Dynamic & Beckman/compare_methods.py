@@ -13,14 +13,14 @@ cities_data = 'cities_data/'
 # net_name = cities_data + 'ChicagoSketch_net.tntp'
 # trips_name = cities_data + 'ChicagoSketch_trips.tntp'
 ### ANAHEIM
-# net_name = cities_data + 'Anaheim_net.tntp'
-# trips_name = cities_data + 'Anaheim_trips.tntp'
-# city_name = 'Anaheim'
+net_name = cities_data + 'Anaheim_net.tntp'
+trips_name = cities_data + 'Anaheim_trips.tntp'
+city_name = 'Anaheim'
 
 ###SIOUX FALLS
-net_name = cities_data + 'SiouxFalls_net.tntp'
-trips_name = cities_data + 'SiouxFalls_trips.tntp'
-city_name = 'SiouxFalls'
+# net_name = cities_data + 'SiouxFalls_net.tntp'
+# trips_name = cities_data + 'SiouxFalls_trips.tntp'
+# city_name = 'SiouxFalls'
 
 model,graph_data = test.init_city(beckmann_save, cities_data , net_name , trips_name)
 
@@ -43,8 +43,8 @@ list_methods.append(( 'fwm', 'Frank Wolfe' ,
 
 
 ### CFWM
-# list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe' , 
-#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 3000, 'save_history' : True , "alpha_default" : 0.6 } ))
+list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe' , 
+    {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 3000, 'save_history' : True , "alpha_default" : 0.6 } ))
 ### CFWM linesearch
 # list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe linesearch' , 
 #     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "alpha_default" : 0.6 , "linesearch" :True} ))
