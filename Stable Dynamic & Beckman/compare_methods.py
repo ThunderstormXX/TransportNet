@@ -25,7 +25,7 @@ city_name = 'SiouxFalls'
 model,graph_data = test.init_city(beckmann_save, cities_data , net_name , trips_name)
 
 #INIT MAX ITER
-max_iter = 1000
+max_iter = 100
 
 #INIT METHODS
 list_methods = []

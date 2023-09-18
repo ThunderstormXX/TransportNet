@@ -8,6 +8,7 @@ from matplotlib import rc
 from platform import python_version
 import graph_tool
 import pickle
+import datetime
 
 
 # по названию города ==> модель и таблицу графа
@@ -35,6 +36,8 @@ def run_method(method , name , solver_kwargs , model ,graph_data ,city_name = ''
 def save_and_plot( experiments , d_gap_display = True , primal_display = False ) :
     color_generator = plt.cm.get_cmap('tab20', len(experiments))
     colors = [color_generator(i) for i in np.linspace(0, 1, len(experiments))]
+    time = datetime.datetime.now().time().strftime("%H:%M")
+    date = datetime.datetime.now().date()
     if d_gap_display :       
         plt.figure(figsize = (10, 5))
         for col_id , experiment in enumerate(experiments) :
@@ -43,7 +46,7 @@ def save_and_plot( experiments , d_gap_display = True , primal_display = False )
             iters = np.arange(max_iter)
             plt.plot(iters, dual_gaps , color =colors[col_id] ,label = name)
             experiments_folder = './experiments_results/'
-            experiment_path = experiments_folder + name + '_' + city_name + '_' + str(max_iter) + 'iters' + '.csv'
+            experiment_path = experiments_folder + name + '_' + city_name + '_' + str(max_iter) + 'iters_datetime_' + str(date)+'_' + str(time)+ '.csv'
             df_dual_gaps = pd.DataFrame(dual_gaps)
             df_dual_gaps.to_csv( experiment_path  , index=False)
         
@@ -52,7 +55,7 @@ def save_and_plot( experiments , d_gap_display = True , primal_display = False )
         plt.title('Сходимость duality gap на городе ' + city_name)
         plt.legend()
         plt.yscale('log')
-        plt.savefig(experiments_folder + name + '_' + city_name + '_' + str(max_iter) + 'iters' + '.png')
+        plt.savefig(experiments_folder + 'Experiment_dualgap_date_'+ str(date) +'_time_'+str(time)+ '_city_' + city_name + '_' + str(max_iter) + 'iters' + '.png')
         plt.show()
     if primal_display :
         plt.figure(figsize = (10, 5))
@@ -71,6 +74,7 @@ def save_and_plot( experiments , d_gap_display = True , primal_display = False )
         plt.title('Сходимость primal на городе ' + city_name)
         plt.legend()
         plt.yscale('log')
+        plt.savefig(experiments_folder + 'Experiments_primal_date_'+ str(date) +'_time_'+str(time)+ '_city_' + city_name + '_' + str(max_iter) + 'iters' + '.png')
         plt.show()
 
 # Кастомно прочекать графики по значениям целевой функции в file.csv
@@ -92,3 +96,5 @@ def display(filename , last_iters = 0 ) :
 
 
 # display('./experiments_results/Frank Wolfe_SiouxFalls_100iters.csv' , 10)
+
+
