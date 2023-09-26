@@ -12,7 +12,7 @@ import datetime
 
 
 # по названию города ==> модель и таблицу графа
-def init_city(beckmann_save, cities_data , net_name , trips_name) :
+def init_city(beckmann_save , net_name , trips_name) :
     handler = dh.DataHandler()
     graph_data = handler.GetGraphData(net_name, columns = ['init_node', 'term_node', 'capacity', 'free_flow_time'],parser= eval(f'handler.tntp_net_parser'))
     graph_correspondences, total_od_flow = handler.GetGraphCorrespondences(trips_name)
@@ -24,12 +24,12 @@ def init_city(beckmann_save, cities_data , net_name , trips_name) :
 # Запуск моделей с выбором числа итераций и города и аргументов метода и кастомный нейминг
 def run_method(method , name , solver_kwargs , model ,graph_data ,city_name = '' , max_iter = 100) :
     assert(model.mu == 0.25)
-    print('----------------------Running ' ,name ,'in ', max_iter ,' iters , on city :', city_name,'--------------------------------')
+    print('----------------------Running ' ,name ,'in ', max_iter ,' iters , on city ', city_name,'--------------------------------')
     tic = time.time()
     result_fwm = model.find_equilibrium(solver_name = method, solver_kwargs = solver_kwargs)
     toc = time.time()
     print('Elapsed time: {:.0f} sec'.format(toc - tic))
-    print('----------------------END')
+    print('----------------------END--------------------------------------------------------')
     return result_fwm , method , max_iter , city_name
 
 # список графиков ==>> вывод и сохранение
