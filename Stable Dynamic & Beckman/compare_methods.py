@@ -36,12 +36,11 @@ city_name = 'Anaheim'
 model,graph_data = test.init_city(beckmann_save, net_name , trips_name)
 
 #INIT MAX ITER
-max_iter = 300
+max_iter = 1000
 verbose_step = int(max_iter/4)
 
 #INIT METHODS
 list_methods = []
-
 
 
 #NFWM
@@ -54,15 +53,15 @@ list_methods = []
 # N = 6
 # list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) , 
 #     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True , 'NFW': N} ))
-N = 5
-list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) , 
-    {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True , 'NFW': N} ))
+# N = 5
+# list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) , 
+#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True , 'NFW': N} ))
 N = 4
 list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) , 
     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True , 'NFW': N} ))
-N = 3
-list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) , 
-    {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True , 'NFW': N} ))
+# N = 3
+# list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) , 
+#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True , 'NFW': N} ))
 # N = 2
 # list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) , 
 #     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True , 'NFW': N} ))
@@ -70,7 +69,7 @@ list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) 
 
 ### FWM
 # list_methods.append(( 'fwm', 'Frank Wolfe' , 
-#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': verbose_step, 'save_history' : True} ))
+#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 1000, 'save_history' : True} ))
 ### FWM linesearch
 # list_methods.append(( 'fwm', 'Frank Wolfe linesearch' , 
 #     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "linesearch" : True} ))
@@ -82,10 +81,10 @@ list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) 
 
 ### CFWM
 # list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe' , 
-#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': verbose_step, 'save_history' : True , "alpha_default" : 0.6 } ))
+#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': 2000, 'save_history' : True , "alpha_default" : 0.6 } ))
 ### CFWM linesearch
-# list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe linesearch' , 
-#     {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': verbose_step, 'save_history' : True , "alpha_default" : 0.6 , "linesearch" :True} ))
+list_methods.append(( 'cfwm', 'Conjugate Frank Wolfe linesearch' , 
+    {'max_iter' : max_iter, 'stop_crit': 'max_iter','verbose' : True, 'verbose_step': verbose_step, 'save_history' : True , "alpha_default" : 0.6 , "linesearch" :True} ))
 
 ### FWF weighted linesearch
 # weights = [0.15]
@@ -120,10 +119,10 @@ list_methods.append(( 'cfwm', 'Nconjugate Frank Wolfe linesearch , N =' +str(N) 
 # list_methods.append(( 'cfwm', 'Biconjugate Frank Wolfe' , 
 #     {'max_iter' : max_iter, 'stop_crit': 'max_iter',
 #                  'verbose' : True, 'verbose_step': verbose_step, 'save_history' : True , 'biconjugate' : True } ))
-### Biconjugate Frank Wolfe linesearch
-list_methods.append(( 'cfwm', 'Biconjugate Frank Wolfe(linesearch)' , 
-    {'max_iter' : max_iter, 'stop_crit': 'max_iter',
-                 'verbose' : True, 'verbose_step': 1000, 'save_history' : True , 'biconjugate' : True , 'linesearch':True } ))
+# ### Biconjugate Frank Wolfe linesearch
+# list_methods.append(( 'cfwm', 'Biconjugate Frank Wolfe(linesearch)' , 
+#     {'max_iter' : max_iter, 'stop_crit': 'max_iter',
+#                  'verbose' : True, 'verbose_step': 2000, 'save_history' : True , 'biconjugate' : True , 'linesearch':True } ))
 ### USTM
 # eps_abs = 31
 # list_methods.append(( 'ustm', 'USTM with eps_abs ='+ str(eps_abs) , 
@@ -156,5 +155,5 @@ for method , name , solver_kwargs in list_methods :
 # plt.show()
 
 #DISPLAY RESULTS
-test.save_and_plot( experiments , d_gap_display = True , primal_display = False )
+test.plot( experiments , d_gap_display = False , primal_display = False , time_display = True  , save = True)
 

@@ -25,7 +25,6 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
     t = None
     flows = - oracle.grad(t_start)
     t_weighted = np.copy(t_start)
-    
     primal, dual, duality_gap_init, state_msg = primal_dual_oracle(flows, t_weighted) 
     if save_history:
         history = History('iter', 'primal_func', 'dual_func', 'dual_gap')
@@ -39,6 +38,8 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
     relative_gaps = []
     primal_list = []
     y_parameter_list = []    
+    time_list = []
+    curr_time = oracle.time
     success = False
     gamma = 1 
     
@@ -74,7 +75,7 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
         if linesearch :
             # Точно ли надо брать primal_dual_oracle от  (1-gamma*t_weighted +gamma*t  может там просто t_weighted ??????
             # Ответ: да надо , ведь ниже всегда считаются flows и t_weighted одновременно а потом загоняются в функцию
-            res = minimize_scalar( lambda y : primal_dual_oracle( flows + y*d_k , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
+            res = minimize_scalar( lambda y : primal_dual_oracle( flows + y*d_k , (1.0 - gamma) * t_weighted + gamma * t)[0] , bounds = (0.0,1.0) , tol = 1e-12 )
             gamma = res.x
         else :
             gamma = 2.0/(it_counter + 1)
@@ -83,7 +84,7 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
         if lambda_k != 0 :
             gamma_mod = lambda_k*gamma 
             betta = min(gamma_mod,1)
-            if primal_dual_oracle(flows + betta*d_k , (1.0 - betta) * t_weighted + betta * t)[2] < primal_dual_oracle(flows,t_weighted)[2] :
+            if primal_dual_oracle(flows + betta*d_k , (1.0 - betta) * t_weighted + betta * t)[0] < primal_dual_oracle(flows,t_weighted)[0] :
                 gamma = betta
         
 
@@ -93,6 +94,7 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
         primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
 
         duality_gap_list.append(duality_gap)
+        time_list.append(oracle.time - curr_time)
         if save_history:
             history.update(it_counter, primal, dual, duality_gap)
         if verbose and (it_counter % verbose_step == 0):
@@ -106,7 +108,8 @@ def fukushima_frank_wolfe_method(oracle, primal_dual_oracle,
               'iter_num': it_counter,
               'res_msg' : 'success' if success else 'iterations number exceeded',
               'duality_gaps' : duality_gap_list , 'relative_gaps': relative_gaps ,
-              'primal_list' : primal_list }
+              'primal_list' : primal_list ,
+              'time_list': time_list}
     if save_history:
         result['history'] = history.dict
     if verbose:

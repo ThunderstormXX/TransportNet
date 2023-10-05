@@ -40,6 +40,8 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
     duality_gap_list = []
     relative_gap_list = []
     primal_list = []
+    time_list = []
+    curr_time = oracle.time
     success = False
     gamma = 1 
     for it_counter in range(1, max_iter+1):
@@ -49,7 +51,7 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         primal_list.append(primal)
         
         if linesearch :
-            res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * yk_FW , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
+            res = minimize_scalar( lambda y : primal_dual_oracle(( 1.0 - y ) * flows + y * yk_FW , (1.0 - gamma) * t_weighted + gamma * t)[0] , bounds = (0.0,1.0) , tol = 1e-12 )
             gamma = res.x
         else :
             gamma = 2.0/(it_counter + 1)
@@ -70,6 +72,7 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
         # print(duality_gap ,  - np.dot())
 
         duality_gap_list.append(duality_gap)
+        time_list.append(oracle.time- curr_time)
         if save_history:
             history.update(it_counter, primal, dual, duality_gap)
         if verbose and (it_counter % verbose_step == 0):
@@ -86,7 +89,8 @@ def frank_wolfe_method(oracle, primal_dual_oracle,
               'res_msg' : 'success' if success else 'iterations number exceeded',
               'duality_gaps' : duality_gap_list ,
               'relative_gaps' : relative_gap_list ,
-              'primal_list': primal_list}
+              'primal_list': primal_list ,
+              'time_list' : time_list}
     if save_history:
         result['history'] = history.dict
     if verbose:

@@ -39,14 +39,24 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
 
     duality_gap_list = []
     primal_list = []
+    time_list = []
+    curr_time = oracle.time
    
     if NFW != 0:
         d_list = []
         S_list = []
         gamma_list = []
         gamma = 1
+        epoch = 0
         for it_counter in range(1, max_iter+1):
-            if it_counter == 1 :
+            # print(gamma)
+
+            if gamma > 0.99999 :
+                epoch = 0
+                S_list = []
+                d_list = []
+            if it_counter == 1  or epoch == 0:
+                epoch  = epoch + 1
                 t = primal_dual_oracle.get_times(flows)
                 sk_FW = primal_dual_oracle.get_flows(t)    
                 dk = sk_FW - flows
@@ -63,35 +73,46 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
                 N = len(B)
                 betta = [-1]*(N+1)
                 betta_sum = 0
+                delta = 0.0001
                 for m in range(N,0,-1) :
                     betta[m] = -A[-m]/(B[-m]*(1- gamma_list[-m])) + betta_sum*gamma_list[-m]/(1-gamma_list[-m]) 
                     if betta[m] < 0 :
                         betta[m] = 0
+                    # elif betta[m] > 1- delta :
+                    #     betta[m] = 1 - delta 
+                    #     betta_sum = betta_sum + 1 - delta
                     else :
                         betta_sum = betta_sum + betta[m]
                 alpha_0 = 1/(1+betta_sum)
                 alpha = np.array(betta)[1:] * alpha_0
 
-                # if max(np.max(alpha) , alpha_0) > 0.99999 :
-                #     alpha_0 = 1
-                #     alpha = np.zeros(len(alpha))
-                    
+                # if max(np.max(alpha) , alpha_0) > 0.99 :
+                #     alpha_0 = 0.2
+                #     alpha = 0.8 * np.ones(len(alpha)) / len(alpha) 
+                
+                
+                alpha = alpha[::-1]
+                
+                # print('-----------------ITER:' , it_counter , '--- directions =' , [np.sum(sk_FW)]+list(np.sum(S_list,axis=1)) )
+                # print('-----------------ITER:',it_counter,'--- alpha =' , [alpha_0 ]+ list(alpha[::-1]) )
+                
                 sk = alpha_0*sk_FW + np.sum(alpha*np.array(S_list).T , axis=1)
                 dk = sk - flows
 
-
                 # print('CHECK CONJUGATE :' , len(d_list)  , 'alpha:' , alpha  , 'alpha_0: ' , alpha_0 , 'list_conjugates: ' , np.sum(dk*hessian*d_list , axis=1))
-
                 d_list.append(dk)
                 S_list.append(sk)
 
 
-                if it_counter > NFW  :
+                epoch = epoch + 1
+                if epoch > NFW  :
                     d_list.pop(0)
                     S_list.pop(0)
                     gamma_list.pop(0)
+
+
             if linesearch :
-                res = minimize_scalar( lambda y : primal_dual_oracle(flows + y*dk , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
+                res = minimize_scalar( lambda y : primal_dual_oracle(flows + y*dk , (1.0 - gamma) * t_weighted + gamma * t)[0] , bounds = (0.0,1.0) , tol = 1e-12 )
                 gamma = res.x
             else :
                 gamma = 2.0/(it_counter + 2)
@@ -101,6 +122,7 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
             t_weighted = (1.0 - gamma) * t_weighted + gamma * t
             primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
             duality_gap_list.append(duality_gap)
+            time_list.append(oracle.time- curr_time)
             if save_history:
                 history.update(it_counter, primal, dual, duality_gap)
             if verbose and (it_counter % verbose_step == 0):
@@ -116,17 +138,42 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
         
         # d_list= []
         for it_counter in range(1, max_iter+1):
-            if it_counter == 1 :
+            # print(gamma)
+            if gamma > 0.99999 :
+                is_1st_iter = True
+                is_2st_iter = True
+            if it_counter == 1 or is_1st_iter : #FW
+                is_1st_iter = False
                 t = primal_dual_oracle.get_times(flows)
+
                 sk_FW = primal_dual_oracle.get_flows(t)    
                 dk = sk_FW - flows
                 sk_BFW_old = sk_FW
-            elif it_counter == 2 :
+                # print('-----------------ITER:',it_counter,'--- alpha =' , 1)
+            elif it_counter == 2 or is_2st_iter: #CFW
+                is_2st_iter = False
                 t = primal_dual_oracle.get_times(flows)
                 sk_FW = primal_dual_oracle.get_flows(t)    
-                dk = sk_FW - flows
-                sk_BFW = sk_FW
-            else :
+                dk_FW = sk_FW - flows
+                
+                hessian = primal_dual_oracle.get_diff_times(flows)
+                dk_bar = sk_BFW_old - flows # sk_BFW_old from the previous iteration 1
+                Nk = np.sum( dk_bar *hessian * dk_FW )
+                Dk = np.sum( dk_bar *hessian * (dk_FW - dk_bar) )
+                delta = 0.0001 # What value should I use?
+                if Dk !=0 and 0 <= Nk/Dk <= 1-delta :
+                    alphak = Nk/Dk
+                elif Dk !=0 and Nk/Dk > 1-delta :
+                    alphak = 1-delta
+                else :
+                    alphak = 0
+                # Generating new sk_BFW and dk_BFW
+                sk_BFW = alphak * sk_BFW_old + (1-alphak) * sk_FW
+                dk_BFW = sk_BFW - flows
+                dk = dk_BFW
+                # print('-----------------ITER:',it_counter,'--- directions =', [ np.sum(sk_FW) , np.sum(sk_BFW_old)  ] )
+                # print('-----------------ITER:',it_counter,'--- alpha =' , [1-alphak , alphak ])
+            else : #BFW
                 t = primal_dual_oracle.get_times(flows)
                 sk_FW = primal_dual_oracle.get_flows(t)
                 hessian = primal_dual_oracle.get_diff_times(flows)
@@ -141,11 +188,11 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
                 else :
                     mu_k = 0
                 denom_nu_k = np.sum( dk_bar* hessian * dk_bar)
+                mu_k = max(0, mu_k)
                 if denom_nu_k != 0 :
                     nu_k = - np.sum( dk_bar* hessian * dk_FW ) / denom_nu_k + mu_k*gamma/(1-gamma)
                 else :
                     nu_k = 0
-                mu_k = max(0, mu_k)
                 nu_k = max(0, nu_k)
                 
                 betta_0 = 1 / ( 1 + mu_k + nu_k )
@@ -153,6 +200,10 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
                 betta_2 = mu_k * betta_0
 
                 
+
+
+                # print('-----------------ITER:',it_counter,'--- directions =' ,[ np.sum(sk_FW) , np.sum(sk_BFW) ,np.sum(sk_BFW_old)  ] )
+                # print('-----------------ITER:',it_counter,'--- alpha =' , [betta_0 , betta_1 , betta_2 ])
                 sk_BFW_new = betta_0*sk_FW + betta_1*sk_BFW + betta_2*sk_BFW_old
                 sk_BFW_old = sk_BFW
                 sk_BFW = sk_BFW_new
@@ -163,7 +214,7 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
                 # print(np.sum(np.array(d_list)*hessian*dk , axis=1 ))
 
             if linesearch :
-                res = minimize_scalar( lambda y : primal_dual_oracle(flows + y*dk , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
+                res = minimize_scalar( lambda y : primal_dual_oracle(flows + y*dk , (1.0 - gamma) * t_weighted + gamma * t)[0] , bounds = (0.0,1.0) , tol = 1e-12 )
                 gamma = res.x
             else :
                 gamma = 2.0/(it_counter + 1)
@@ -177,6 +228,7 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
             t_weighted = (1.0 - gamma) * t_weighted + gamma * t
             primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
             duality_gap_list.append(duality_gap)
+            time_list.append(oracle.time- curr_time)
             if save_history:
                 history.update(it_counter, primal, dual, duality_gap)
             if verbose and (it_counter % verbose_step == 0):
@@ -212,7 +264,7 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
             else :
                 x_star = x_star*alpha + (1-alpha)*yk_FW            
             if linesearch :
-                res = minimize_scalar( lambda y : primal_dual_oracle((1-y)*flows + y*x_star , (1.0 - gamma) * t_weighted + gamma * t)[2] , bounds = (0.0,1.0) , tol = 1e-12 )
+                res = minimize_scalar( lambda y : primal_dual_oracle((1-y)*flows + y*x_star , (1.0 - gamma) * t_weighted + gamma * t)[0] , bounds = (0.0,1.0) , tol = 1e-12 )
                 gamma = res.x
             else :
                 gamma = 2.0/(it_counter + 1)
@@ -227,6 +279,7 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
 
             primal, dual, duality_gap, state_msg  = primal_dual_oracle(flows, t_weighted)
             duality_gap_list.append(duality_gap)
+            time_list.append(oracle.time-curr_time)
             if save_history:
                 history.update(it_counter, primal, dual, duality_gap)
             if verbose and (it_counter % verbose_step == 0):
@@ -243,7 +296,8 @@ def conjugate_frank_wolfe_method(oracle, primal_dual_oracle,
               'iter_num': it_counter,
               'res_msg' : 'success' if success else 'iterations number exceeded',
               'duality_gaps' : duality_gap_list ,
-              'primal_list' : primal_list}
+              'primal_list' : primal_list ,
+              'time_list': time_list}
     if save_history:
         result['history'] = history.dict
     if verbose:
